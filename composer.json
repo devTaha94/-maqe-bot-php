@@ -1,0 +1,6 @@
+{
+    "name": "ahmedtaha/design-patterns",
+    "require-dev": {
+        "phpunit/phpunit": "^9.5"
+    }
+}
