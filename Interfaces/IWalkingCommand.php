@@ -1,7 +1,5 @@
 <?php
 
-require_once 'WalkingCommand.php';
-
 interface IWalkingCommand
 {
     /**

@@ -1,7 +1,7 @@
 <?php
 
 
-require_once 'IWalkingCommand.php';
+require_once './Interfaces/IWalkingCommand.php';
 require_once 'Messages.php';
 
 class WalkingCommand implements IWalkingCommand
@@ -30,23 +30,20 @@ class WalkingCommand implements IWalkingCommand
     private function validateWalkingCommand(): mixed
     {
         try {
-            //reset argv array index
             $arguments = array_values($this->arguments)[0];
-
-            //remove white spaces if found
+            $arguments = strtoupper($arguments);
             $arguments = str_replace(" ", "", $arguments);
 
-            if (preg_match("/^[RLW\d]+$/", $arguments)) {
-                //convert walking code from string to an array
+            if (preg_match("/^[RLWB\d]+$/", $arguments)) {
                 $this->arguments = str_split($arguments, 1);
                 return $this;
             } else {
                 $errorMsg = 'The walking command can be represented with a string consisting of three alphabets R, L 
                 and W and a positive integer N to indicate the distance of how many positions it has to walk ';
-                 (new Messages())->setErrorMessage($errorMsg);
+                 (new Messages())->getErrorMessage($errorMsg);
             }
         } catch (InvalidArgumentException $exception) {
-                (new Messages())->setErrorMessage($exception->getMessage());
+                (new Messages())->getErrorMessage($exception->getMessage());
         }
     }
 
@@ -59,30 +56,39 @@ class WalkingCommand implements IWalkingCommand
     {
         $preparedArr = [];
         foreach ($this->arguments  as $key => $argument) {
-            // check if previous argument equals W
-            if (isset($this->arguments [$key - 1]) && $this->arguments[$key - 1] === 'W') {
-                $arrayKey = '';
-                $tempArr = array_slice($this->arguments,$key);
-                /*
-                    $arr = array_slice($this->arguments,0,$key);
-                    $pattern = implode('',$arr);
-                    preg_match('/'.$pattern.'\s*(\d+)/', 'RW15', $matches);
-                */
-                foreach ($tempArr as $temp) {
-                    if (is_numeric($temp)) {
-                        $arrayKey .= $temp;
-                    } else {
-                        break;
-                    }
+            if (
+                isset($this->arguments[$key - 1]) &&
+                in_array($this->arguments[$key - 1],['R','L','B','W'])
+            ) {
+                if (!is_numeric($argument)) {
+                    $preparedArr[] = $argument;
                 }
 
-                $preparedArr[] = $arrayKey;
-            } elseif ($argument === 'W' &&  $key == count($this->arguments)-1 ) {
-                unset($this->arguments[count($this->arguments)-1]);
+                if ($this->createStepsArray($key) !== '') {
+                    $preparedArr[] = $this->createStepsArray($key);
+                }
             } else {
                 is_numeric($argument) ?: $preparedArr[] = $argument;
             }
         }
         return  $preparedArr;
+    }
+
+    /**
+     * @param $key
+     * @return string
+     */
+    private function createStepsArray($key): string
+    {
+        $arrayKey = '';
+        $tempArr = array_slice($this->arguments,$key);
+        foreach ($tempArr as $temp) {
+            if (is_numeric($temp)) {
+                $arrayKey .= $temp;
+            } else {
+                break;
+            }
+        }
+        return $arrayKey;
     }
 }

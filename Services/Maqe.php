@@ -1,8 +1,7 @@
 <?php
 
-
+require_once './Interfaces/IWalkingCommand.php';
 require_once 'WalkingCommand.php';
-require_once 'IWalkingCommand.php';
 require_once 'Messages.php';
 
 class Maqe
@@ -44,23 +43,39 @@ class Maqe
     public function run(): void
     {
         foreach ($this->walkingCommands as $key => $walkingCommand) {
-            if ($walkingCommand === 'R') {
-                $this->moveClockWise();
-            } elseif ($walkingCommand === 'L') {
-                $this->moveCounterClockwise();
-            } elseif ($walkingCommand === 'W') {
-                $this->walk($this->walkingCommands[$key + 1]);
-            }
+               $rounds = $this->getRoundsCount($key);
+               if ($walkingCommand === 'R') {
+                   $this->moveClockWise($rounds);
+               } elseif ($walkingCommand === 'L') {
+                   $this->moveCounterClockwise($rounds);
+               } elseif ($walkingCommand === 'W') {
+                   $this->walkForward($rounds);
+               } elseif ($walkingCommand === 'B') {
+                   $this->walkBackwards($rounds);
+               }
         }
         $message = 'X: '.$this->x.' Y: '.$this->y.' Direction: '.self::DIRECTIONS_NAMES[$this->direction];
-        (new Messages())->setSuccessMessage($message);
+        (new Messages())->getSuccessMessage($message);
+    }
+
+    /**
+     * @param $key
+     * @return int
+     */
+    private function getRoundsCount($key): int
+    {
+        $rounds = 1;
+        if (isset($this->walkingCommands[$key + 1]) && is_numeric($this->walkingCommands[$key + 1])) {
+            $rounds = $this->walkingCommands[$key + 1] ;
+        }
+        return $rounds;
     }
 
     /**
      * @param $steps
      * @return void
      */
-    private function walk($steps):void
+    private function walkForward($steps):void
     {
         switch ($this->direction) {
             case self::DIRECTION_NORTH;
@@ -82,26 +97,53 @@ class Maqe
     }
 
     /**
+     * @param $rounds
      * @return void
      */
-    private function moveClockWise(): void
+    private function moveClockWise($rounds): void
     {
         if ($this->direction === self::DIRECTION_WEST) {
             $this->direction = self::DIRECTION_NORTH;
         } else {
-            $this->direction ++;
+            $this->direction += $rounds;
         }
     }
 
     /**
+     * @param $rounds
      * @return void
      */
-    private function moveCounterClockwise(): void
+    private function moveCounterClockwise($rounds): void
     {
-        $this->direction --;
+        $this->direction -= $rounds;
 
         if ($this->direction < self::DIRECTION_NORTH) {
             $this->direction = self::DIRECTION_WEST;
+        }
+    }
+
+    /**
+     * @param $steps
+     * @return void
+     */
+    private function walkBackwards($steps):void
+    {
+        switch ($this->direction) {
+            case self::DIRECTION_NORTH;
+                $this->y -= $steps;
+                break;
+
+            case self::DIRECTION_EAST;
+                $this->x -= $steps;
+                break;
+
+            case self::DIRECTION_SOUTH;
+                $this->y += $steps;
+                break;
+
+            case self::DIRECTION_WEST;
+                $this->x += $steps;
+                break;
         }
     }
 

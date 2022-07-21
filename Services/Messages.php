@@ -2,13 +2,15 @@
 
 use JetBrains\PhpStorm\NoReturn;
 
-class Messages
+require_once './Interfaces/IMessages.php';
+
+class Messages implements IMessages
 {
     /**
      * @param $message
      * @return void
      */
-    #[NoReturn] public function setErrorMessage($message): void
+    #[NoReturn] public function getErrorMessage($message): void
     {
         echo "\033[31m $message \033[0m\n";
     }
@@ -17,7 +19,7 @@ class Messages
      * @param $message
      * @return void
      */
-    #[NoReturn] public function setSuccessMessage($message):void
+    #[NoReturn] public function getSuccessMessage($message):void
     {
         echo "\033[32m$message \033[0m\n";
     }
