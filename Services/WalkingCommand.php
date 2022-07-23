@@ -26,6 +26,35 @@ class WalkingCommand implements IWalkingCommand
     }
 
     /**
+     * @return $this|void
+     */
+    private function readWalkingCommandsFromFile()
+    {
+        try {
+            $handle = fopen($this->arguments[1], "r");
+            if ($handle) {
+                $i = 0;
+                while (($line = fgets($handle)) !== false) {
+                    if ($i === 0) {
+                        if (!is_numeric($line)) {
+                            (new Messages())->getErrorMessage('First line must be valid integer');
+                            exit();
+                        }
+                        $this->iteration = $line;
+                    } else {
+                        $this->commandsArr[] = trim(preg_replace('/\s\s+/', ' ', $line));
+                    }
+                    $i++;
+                }
+                fclose($handle);
+                return $this;
+            }
+        } catch (Exception $exception) {
+            (new Messages())->getErrorMessage($exception->getMessage());
+        }
+    }
+
+    /**
      * prepare validation
      * @return WalkingCommand
      */
@@ -54,32 +83,6 @@ class WalkingCommand implements IWalkingCommand
             return $this;
         } catch (InvalidArgumentException $exception) {
                 (new Messages())->getErrorMessage($exception->getMessage());
-        }
-    }
-
-    private function readWalkingCommandsFromFile()
-    {
-        try {
-            $handle = fopen($this->arguments[1], "r");
-            if ($handle) {
-                $i = 0;
-                while (($line = fgets($handle)) !== false) {
-                    if ($i === 0) {
-                        if (!is_numeric($line)) {
-                            (new Messages())->getErrorMessage('First line must be valid integer');
-                            exit();
-                        }
-                        $this->iteration = $line;
-                    } else {
-                        $this->commandsArr[] = trim(preg_replace('/\s\s+/', ' ', $line));
-                    }
-                    $i++;
-                }
-                fclose($handle);
-                return $this;
-            }
-        } catch (Exception $exception) {
-            (new Messages())->getErrorMessage($exception->getMessage());
         }
     }
 
