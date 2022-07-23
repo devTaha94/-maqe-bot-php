@@ -9,9 +9,13 @@ class MaqeTest extends TestCase
         require_once './Services/Maqe.php';
         require_once './Services/WalkingCommand.php';
 
-        $maqe = new Maqe(new WalkingCommand(['RW15RW1']));
+        $maqe = new Maqe(new WalkingCommand(['','./section3.in']));
         $maqe->run();
-        $message = 'X: '.$maqe->getX().' Y: '.$maqe->getY().' Direction: '.$maqe->getDirection();
-        $this->assertSame('X: 15 Y: -1 Direction: SOUTH',$message);
+
+        $message = 'Case #1: X: 1 Y: 0 Direction: SOUTH'.PHP_EOL;
+        $message.= 'Case #2: X: 55 Y: 99 Direction: EAST'.PHP_EOL;
+        $message.= 'Case #3: X: 0 Y: -3 Direction: NORTH'.PHP_EOL;
+
+        $this->assertStringMatchesFormatFile('./section3.out',$message);
     }
 }
