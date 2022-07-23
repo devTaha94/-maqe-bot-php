@@ -1,33 +1,42 @@
 <?php
 
 require_once './Interfaces/IWalkingCommand.php';
-require_once 'WalkingCommand.php';
+require_once './Interfaces/IMaqe.php';
 require_once 'Messages.php';
+require_once 'FileWriter.php';
 
-class Maqe
+class Maqe implements IMaqe
 {
-    const DIRECTION_NORTH = 0;
-    const DIRECTION_EAST = 1;
-    const DIRECTION_SOUTH = 2;
-    const DIRECTION_WEST = 3;
-    const DIRECTIONS_NAMES = ['NORTH','EAST','SOUTH','WEST'];
+    private const DIRECTION_NORTH = 0;
+    private const DIRECTION_EAST = 1;
+    private const DIRECTION_SOUTH = 2;
+    private const DIRECTION_WEST = 3;
+    private const DIRECTIONS_NAMES = ['NORTH','EAST','SOUTH','WEST'];
 
     /**
      * @var int
      */
     private int $x = 0;
+
     /**
      * @var int
      */
     private int $y = 0;
-    /**
-     * @var array
-     */
-    private array $walkingCommands;
+
     /**
      * @var int
      */
     private int $direction = self::DIRECTION_NORTH;
+
+    /**
+     * @var string
+     */
+    private string $result = '';
+
+    /**
+     * @var array
+     */
+    private array $walkingCommands;
 
     /**
      * @param IWalkingCommand $walkingCommand
@@ -37,63 +46,45 @@ class Maqe
         $this->walkingCommands = $walkingCommand->getArguments();
     }
 
+    public function getX(): int
+    {
+        return $this->x;
+    }
+
+    public function getY(): int
+    {
+        return $this->y;
+    }
+
+    public function getDirection(): string
+    {
+        return self::DIRECTIONS_NAMES[$this->direction];
+    }
+
     /**
      * @return void
      */
     public function run(): void
     {
-        foreach ($this->walkingCommands as $key => $walkingCommand) {
-               $rounds = $this->getRoundsCount($key);
-               if ($walkingCommand === 'R') {
-                   $this->moveClockWise($rounds);
-               } elseif ($walkingCommand === 'L') {
-                   $this->moveCounterClockwise($rounds);
-               } elseif ($walkingCommand === 'W') {
-                   $this->walkForward($rounds);
-               } elseif ($walkingCommand === 'B') {
-                   $this->walkBackwards($rounds);
-               }
+        foreach ($this->walkingCommands as $iterator => $walkingCommands) {
+            foreach ($walkingCommands as $key => $command) {
+                $rounds = $this->getRoundsCount($walkingCommands,$key);
+                if ($command === 'R') {
+                    $this->moveClockWise($rounds);
+                } elseif ($command === 'L') {
+                    $this->moveCounterClockwise($rounds);
+                } elseif ($command === 'W') {
+                    $this->walkForward($rounds);
+                } elseif ($command === 'B') {
+                    $this->walkBackwards($rounds);
+                }
+            }
+            $this->result.= $this->prepareResult($iterator);
         }
-        $message = 'X: '.$this->x.' Y: '.$this->y.' Direction: '.self::DIRECTIONS_NAMES[$this->direction];
-        (new Messages())->getSuccessMessage($message);
-    }
 
-    /**
-     * @param $key
-     * @return int
-     */
-    private function getRoundsCount($key): int
-    {
-        $rounds = 1;
-        if (isset($this->walkingCommands[$key + 1]) && is_numeric($this->walkingCommands[$key + 1])) {
-            $rounds = $this->walkingCommands[$key + 1] ;
-        }
-        return $rounds;
-    }
+        (new FileWriter())->write('section3.out',$this->result);
 
-    /**
-     * @param $steps
-     * @return void
-     */
-    private function walkForward($steps):void
-    {
-        switch ($this->direction) {
-            case self::DIRECTION_NORTH;
-                $this->y += $steps;
-                break;
-
-            case self::DIRECTION_EAST;
-                $this->x += $steps;
-                break;
-
-            case self::DIRECTION_SOUTH;
-                $this->y -= $steps;
-                break;
-
-            case self::DIRECTION_WEST;
-                $this->x -= $steps;
-                break;
-        }
+        (new Messages())->getSuccessMessage('Results has been written to section3.out file');
     }
 
     /**
@@ -126,6 +117,31 @@ class Maqe
      * @param $steps
      * @return void
      */
+    private function walkForward($steps):void
+    {
+        switch ($this->direction) {
+            case self::DIRECTION_NORTH;
+                $this->y += $steps;
+                break;
+
+            case self::DIRECTION_EAST;
+                $this->x += $steps;
+                break;
+
+            case self::DIRECTION_SOUTH;
+                $this->y -= $steps;
+                break;
+
+            case self::DIRECTION_WEST;
+                $this->x -= $steps;
+                break;
+        }
+    }
+
+    /**
+     * @param $steps
+     * @return void
+     */
     private function walkBackwards($steps):void
     {
         switch ($this->direction) {
@@ -147,22 +163,24 @@ class Maqe
         }
     }
 
-    public function getX(): int
+    /**
+     * @param $command
+     * @param $key
+     * @return int
+     */
+    private function getRoundsCount($command,$key): int
     {
-        return $this->x;
+        $rounds = 1;
+        if (isset($command[$key + 1]) && is_numeric($command[$key + 1])) {
+            $rounds = $command[$key + 1] ;
+        }
+        return $rounds;
     }
 
-    public function getY(): int
+    private function prepareResult($iterator): string
     {
-        return $this->y;
-    }
-
-    public function getDirection(): string
-    {
-        return self::DIRECTIONS_NAMES[$this->direction];
+        $text = 'Case #'.($iterator + 1).': X: '.$this->getX().' Y: '.$this->getY().' Direction: '.$this->getDirection().PHP_EOL;
+        $this->x = $this->y = $this->direction = 0;
+        return $text;
     }
 }
-
-unset($_SERVER['argv'][0]);
-$maqe = new Maqe(new WalkingCommand($_SERVER['argv']));
-$maqe->run();
