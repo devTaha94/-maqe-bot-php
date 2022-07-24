@@ -1,21 +1,37 @@
 <?php
 
 use PHPUnit\Framework\TestCase;
+use App\Services\CommandParser;
+use App\Services\Maqe;
+use App\Services\FileWriter;
 
 class MaqeTest extends TestCase
 {
+
     public function testMaqe()
     {
-        require_once './Services/Maqe.php';
-        require_once './Services/WalkingCommand.php';
+        $parsedCommand = (new CommandParser('section3.in'));
+        $this->assertInstanceOf(CommandParser::class,$parsedCommand);
 
-        $maqe = new Maqe(new WalkingCommand(['','./section3.in']));
-        $maqe->run();
+        $maqe = new Maqe();
+        $outputs = $maqe->runCommand($parsedCommand);
+        $this->assertIsArray($outputs);
+        return $outputs;
+    }
 
-        $message = 'Case #1: X: 1 Y: 0 Direction: SOUTH'.PHP_EOL;
-        $message.= 'Case #2: X: 55 Y: 99 Direction: EAST'.PHP_EOL;
-        $message.= 'Case #3: X: 0 Y: -3 Direction: NORTH'.PHP_EOL;
+    /**
+     * @depends testMaqe
+     */
+    public function testMaqeOutputFileResults($outputs)
+    {
+        $result = '';
 
-        $this->assertStringMatchesFormatFile('./section3.out',$message);
+        foreach ($outputs as $key => $value) {
+            $result .= 'Case #' . ($key + 1) . ': X: ' . $value['x'] . ' Y: ' . $value['y'] . ' Direction: ' . $value['direction'] . PHP_EOL;
+        }
+
+        $fileWriter = new FileWriter();
+        $fileWriter->write($result,'section3.out');
+        $this->assertStringMatchesFormatFile('./section3.out',$result);
     }
 }
