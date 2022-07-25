@@ -3,8 +3,7 @@
 namespace App\Services;
 
 use App\Interfaces\BotInterface;
-use App\Interfaces\CommandInterface;
-use http\Exception\InvalidArgumentException;
+use App\Interfaces\ParserInterface;
 
 class Maqe implements BotInterface
 {
@@ -54,34 +53,24 @@ class Maqe implements BotInterface
     }
 
     /**
-     * @return array
+     * @param ParserInterface $command
+     * @return BotInterface
      */
-    public function runCommand(CommandInterface $command):array
+    public function runCommand(ParserInterface $command): BotInterface
     {
-        $results = [];
-        $commands = $command->getCommands();
-
-        foreach ($commands as $iteration => $walkingCommands) {
-            foreach ($walkingCommands as $key => $command) {
-                $rounds = $this->getRoundsCount($walkingCommands, $key);
-                if ($command === 'R') {
-                    $this->moveClockWise($rounds);
-                } elseif ($command === 'L') {
-                    $this->moveCounterClockwise($rounds);
-                } elseif ($command === 'W') {
-                    $this->walkForward($rounds);
-                } elseif ($command === 'B') {
-                    $this->walkBackwards($rounds);
-                }
+        foreach ($command->parsedCommand as $key => $value) {
+            $rounds = $this->getRoundsCount($command->parsedCommand, $key);
+            if ($value === 'R') {
+                $this->moveClockWise($rounds);
+            } elseif ($value === 'L') {
+                $this->moveCounterClockwise($rounds);
+            } elseif ($value === 'W') {
+                $this->walkForward($rounds);
+            } elseif ($value === 'B') {
+                $this->walkBackwards($rounds);
             }
-
-             $results[$iteration]['x'] = $this->getX() ;
-             $results[$iteration]['y'] = $this->getY() ;
-             $results[$iteration]['direction'] = $this->getDirection() ;
-
-             $this->x = $this->y = $this->direction = 0;
         }
-        return $results;
+        return $this;
     }
 
     /**
@@ -90,14 +79,9 @@ class Maqe implements BotInterface
      */
     private function moveClockWise($rounds): void
     {
-        if ($rounds > 4) {
-            (new Messages())->getErrorMessage('Direction rounds cannot be grater than 4');
-        }
-
         $this->direction += $rounds;
-        $this->direction %= 4;
 
-        if ($this->direction === self::DIRECTION_WEST) {
+        if ($this->direction > self::DIRECTION_WEST) {
             $this->direction = self::DIRECTION_NORTH;
         }
     }
@@ -108,10 +92,6 @@ class Maqe implements BotInterface
      */
     private function moveCounterClockwise($rounds): void
     {
-        if ($rounds > 4) {
-            (new Messages())->getErrorMessage('Direction rounds cannot be grater than 4');
-        }
-
         $this->direction -= $rounds;
 
         if ($this->direction < self::DIRECTION_NORTH) {

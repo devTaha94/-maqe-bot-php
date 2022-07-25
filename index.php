@@ -2,27 +2,32 @@
 
 require_once './vendor/autoload.php';
 
-use App\Services\CommandParser;
+use App\Services\Parser;
 use App\Services\Maqe;
-use App\Services\FileWriter;
 
 $filename = $_SERVER['argv'][1];
-$parsedCommand = (new CommandParser($filename));
 
-$maqe = new Maqe();
-$outputs = $maqe->runCommand($parsedCommand);
+$fileObject = new \SplFileObject($filename);
+$numberOfCommands = $fileObject->current();
+$fileObject->seek(1);
 
+$outputFile = new \SplFileObject('section3.out','w+');
 
-/* Not sure */
+$i = 1;
+while (!$fileObject->eof()) {
 
-$result = '';
-foreach ($outputs as $key => $value) {
-    $result .= 'Case #' . ($key + 1) . ': X: ' . $value['x'] . ' Y: ' . $value['y'] . ' Direction: ' . $value['direction'] . PHP_EOL;
+    $command = $fileObject->current();
+
+    $parser = (new Parser($command));
+
+    $maqe = new Maqe();
+    $maqe->runCommand($parser->parseCommand());
+
+    $text = 'Case #' . $i . ': X: ' . $maqe->getX() . ' Y: ' . $maqe->getY() . ' Direction: ' . $maqe->getDirection() . PHP_EOL;
+
+    $outputFile->fwrite($text);
+
+    $fileObject->next();
+
+    $i++;
 }
-/* Not sure */
-
-
-$fileWriter = new FileWriter();
-$fileWriter->write($result,'section3.out');
-
-

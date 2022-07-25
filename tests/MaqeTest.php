@@ -1,7 +1,7 @@
 <?php
 
 use PHPUnit\Framework\TestCase;
-use App\Services\CommandParser;
+use App\Services\Parser;
 use App\Services\Maqe;
 use App\Services\FileWriter;
 
@@ -10,8 +10,8 @@ class MaqeTest extends TestCase
 
     public function testMaqe()
     {
-        $parsedCommand = (new CommandParser('section3.in'));
-        $this->assertInstanceOf(CommandParser::class,$parsedCommand);
+        $parsedCommand = (new Parser('section3.in'));
+        $this->assertInstanceOf(Parser::class,$parsedCommand);
 
         $maqe = new Maqe();
         $outputs = $maqe->runCommand($parsedCommand);

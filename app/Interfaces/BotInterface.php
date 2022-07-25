@@ -21,8 +21,7 @@ interface BotInterface
 
     /**
      * contains array of outputs
-     * @param CommandInterface $command
-     * @return array
+     * @param ParserInterface $command
      */
-    public function runCommand(CommandInterface $command): array;
+    public function runCommand(ParserInterface $command): BotInterface;
 }
